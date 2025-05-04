@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TagTag - Events Near You</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4; }
+    h1 { color: #333; }
+    .room { background: white; padding: 10px; margin-bottom: 10px; border-radius: 8px; }
+    button { padding: 5px 10px; margin-top: 5px; }
+    #room-form { margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <h1>TagTag - Discover & Join Events</h1>
+
+  <form id="room-form">
+    <input type="text" id="title" placeholder="Event Title" required>
+    <input type="text" id="location" placeholder="Location" required>
+    <input type="text" id="time" placeholder="Time (e.g. Sat 4PM)" required>
+    <input type="text" id="createdBy" placeholder="Your Name" required>
+    <button type="submit">Create Event</button>
+  </form>
+
+  <div id="rooms"></div>
+
+  <script>
+    const API_BASE = 'https://your-worker-url.workers.dev'; // Replace with actual Worker URL
+
+    async function fetchRooms() {
+      const res = await fetch(`${API_BASE}/rooms`);
+      const rooms = await res.json();
+      const container = document.getElementById('rooms');
+      container.innerHTML = '';
+      rooms.forEach(room => {
+        const div = document.createElement('div');
+        div.className = 'room';
+        div.innerHTML = `
+          <h3>${room.title}</h3>
+          <p><strong>Location:</strong> ${room.location}</p>
+          <p><strong>Time:</strong> ${room.time}</p>
+          <p><strong>By:</strong> ${room.createdBy}</p>
+          <input type="text" placeholder="Your Name" id="join-${room.id}" />
+          <button onclick="joinRoom('${room.id}')">I'm Interested</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    async function joinRoom(id) {
+      const username = document.getElementById(`join-${id}`).value;
+      if (!username) return alert('Enter your name');
+      await fetch(`${API_BASE}/join-room/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
+      });
+      alert('Interest sent!');
+    }
+
+    document.getElementById('room-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('title').value;
+      const location = document.getElementById('location').value;
+      const time = document.getElementById('time').value;
+      const createdBy = document.getElementById('createdBy').value;
+
+      await fetch(`${API_BASE}/create-room`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, location, time, createdBy })
+      });
+      fetchRooms();
+    });
+
+    fetchRooms();
+  </script>
+</body>
+</html>

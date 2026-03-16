@@ -452,7 +452,20 @@ header{position:sticky;top:0;z-index:80;background:var(--black);padding:0 16px;h
   <button class="bni" id="n-going" onclick="showTab('going')"><span class="ic">🙋</span>Going</button>
   <button class="bni" id="n-organiser" style="display:none" onclick="showTab('organiser')"><span class="ic">🏛</span>Manage</button>
 </nav>
-
+<!-- ATTENDING CARD MODAL -->
+<div class="modal-ov" id="cardModal">
+  <div class="modal" style="text-align:center">
+    <button class="modal-x" onclick="closeCardModal()">✕</button>
+    <div class="modal-title" style="margin-bottom:4px">Your Attending Card 🎉</div>
+    <div class="modal-sub">Share to your WhatsApp status and let people know you're going!</div>
+    <canvas id="attendingCard" style="width:100%;border-radius:12px;margin-bottom:16px"></canvas>
+    <div style="display:flex;gap:10px;margin-bottom:10px">
+      <button class="btn btn-black" style="flex:1" onclick="downloadCard()">⬇ Save Image</button>
+      <button class="btn btn-coral" style="flex:1" onclick="shareCardToWhatsApp()">📤 Share Status</button>
+    </div>
+    <button class="btn btn-outline" style="font-size:.8rem;padding:10px" onclick="closeCardModal()">Done</button>
+  </div>
+</div>
 <button class="fab" onclick="openSubmitModal()">+ List an Event</button>
 <div class="toast" id="toast"></div>
 
@@ -794,7 +807,11 @@ function submitGoing(){
       if(myGoingEvents.indexOf(currentEventId)<0){myGoingEvents.push(currentEventId);localStorage.setItem('myGoingEvents',JSON.stringify(myGoingEvents));}
       closeGoingModal();renderEvents();updateStats();
       var ev=allEvents.find(function(e){return e.id===currentEventId;});if(ev)renderDetail(ev);
-      toast('You\'re going! 🙋 Tag someone going from your area.');
+      toast('You\'re going! 🙋 Tag someone.');
+      generateAttendingCard(
+  allEvents.find(function(e) { return e.id === currentEventId; }) || {},
+  name
+);
     }).catch(function(){toast('Error. Please try again.');});
 }
 
@@ -1037,6 +1054,216 @@ function doBroadcast(evId,evName){
     window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
     toast('WhatsApp opened with message template. '+att.length+' people to notify.');
   }).catch(function(){toast('Error. Try again.');});
+}
+// ============================================================
+// ATTENDING CARD GENERATOR
+// ============================================================
+var cardEventData = null;
+var cardUserName = '';
+
+function generateAttendingCard(ev, nickname) {
+  cardEventData = ev;
+  cardUserName = nickname;
+  var canvas = document.getElementById('attendingCard');
+  var size = Math.min(window.innerWidth - 80, 480);
+  canvas.width = size;
+  canvas.height = size;
+  canvas.style.width = '100%';
+  var ctx = canvas.getContext('2d');
+
+  function drawCard() {
+    // Background
+    ctx.fillStyle = '#0f0f0f';
+    ctx.fillRect(0, 0, size, size);
+
+    // Coral accent circle
+    ctx.beginPath();
+    ctx.arc(size - 60, 60, 100, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(232,83,58,0.12)';
+    ctx.fill();
+
+    // Bottom accent
+    ctx.beginPath();
+    ctx.arc(60, size - 60, 80, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(232,83,58,0.07)';
+    ctx.fill();
+
+    var pad = size * 0.08;
+    var y = pad;
+
+    // "I'll be attending" label
+    ctx.fillStyle = '#e8533a';
+    ctx.font = 'bold ' + Math.round(size * 0.045) + 'px DM Sans, sans-serif';
+    ctx.letterSpacing = '0.1em';
+    ctx.fillText('I\'LL BE ATTENDING', pad, y + size * 0.05);
+    y += size * 0.1;
+
+    // Divider line
+    ctx.fillStyle = 'rgba(232,83,58,0.4)';
+    ctx.fillRect(pad, y, size * 0.15, 2);
+    y += size * 0.06;
+
+    // Event name — wrap long names
+    ctx.fillStyle = '#ffffff';
+    var nameFontSize = size * 0.085;
+    ctx.font = 'bold ' + Math.round(nameFontSize) + 'px Syne, sans-serif';
+    var evName = ev.name || 'Event';
+    var maxWidth = size - pad * 2;
+    var words = evName.split(' ');
+    var line = '';
+    var lines = [];
+    for (var i = 0; i < words.length; i++) {
+      var testLine = line + words[i] + ' ';
+      if (ctx.measureText(testLine).width > maxWidth && line !== '') {
+        lines.push(line.trim());
+        line = words[i] + ' ';
+      } else {
+        line = testLine;
+      }
+    }
+    lines.push(line.trim());
+    // Max 2 lines
+    lines = lines.slice(0, 2);
+    if (evName.split(' ').length > 4 && lines.length === 1) {
+      nameFontSize = size * 0.07;
+      ctx.font = 'bold ' + Math.round(nameFontSize) + 'px Syne, sans-serif';
+    }
+    lines.forEach(function(l) {
+      ctx.fillText(l, pad, y + nameFontSize);
+      y += nameFontSize * 1.2;
+    });
+    y += size * 0.03;
+
+    // Speaker if exists
+    if (ev.speaker) {
+      ctx.fillStyle = 'rgba(232,83,58,0.9)';
+      ctx.font = Math.round(size * 0.042) + 'px DM Sans, sans-serif';
+      ctx.fillText('🎙 ' + ev.speaker, pad, y);
+      y += size * 0.07;
+    }
+
+    // Date and location
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.font = Math.round(size * 0.038) + 'px DM Sans, sans-serif';
+    var M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var dateStr = '';
+    if (ev.event_date) {
+      try {
+        var d = new Date(ev.event_date + 'T00:00:00');
+        dateStr = d.getDate() + ' ' + M[d.getMonth()] + ' ' + d.getFullYear();
+      } catch(e) {}
+    }
+    if (dateStr) {
+      ctx.fillText('📅 ' + dateStr + (ev.event_time ? '  ·  ⏰ ' + ev.event_time : ''), pad, y);
+      y += size * 0.06;
+    }
+    ctx.fillText('📍 ' + (ev.location || '') + ', ' + (ev.state || ''), pad, y);
+    y += size * 0.1;
+
+    // Name pill
+    var pillText = nickname;
+    ctx.font = 'bold ' + Math.round(size * 0.048) + 'px DM Sans, sans-serif';
+    var pillW = ctx.measureText(pillText).width + size * 0.1;
+    var pillH = size * 0.1;
+    var pillX = pad;
+    var pillY = y;
+    // Pill background
+    ctx.beginPath();
+    ctx.roundRect(pillX, pillY, pillW, pillH, pillH / 2);
+    ctx.fillStyle = '#e8533a';
+    ctx.fill();
+    // Pill text
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(pillText, pillX + size * 0.05, pillY + pillH * 0.65);
+    y += pillH + size * 0.08;
+
+    // Bottom — TagTag branding
+    var bottomY = size - pad * 0.8;
+    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.fillRect(pad, bottomY - 1, size - pad * 2, 1);
+
+    ctx.fillStyle = '#e8533a';
+    ctx.font = 'bold ' + Math.round(size * 0.042) + 'px Syne, sans-serif';
+    ctx.fillText('TagTag', pad, bottomY + size * 0.045);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.font = Math.round(size * 0.032) + 'px DM Sans, sans-serif';
+    ctx.fillText('Find your people · tag-tag.pages.dev', pad + size * 0.22, bottomY + size * 0.045);
+  }
+
+  // Try to load event image first
+  if (ev.image_url) {
+    var img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function() {
+      // Draw image as top strip
+      ctx.fillStyle = '#0f0f0f';
+      ctx.fillRect(0, 0, size, size);
+      var imgH = size * 0.3;
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(0, 0, size, imgH, [12, 12, 0, 0]);
+      ctx.clip();
+      ctx.drawImage(img, 0, 0, size, imgH);
+      ctx.restore();
+      // Dark overlay on image
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      ctx.fillRect(0, 0, size, imgH);
+      drawCard();
+    };
+    img.onerror = function() { drawCard(); };
+    img.src = ev.image_url;
+  } else {
+    drawCard();
+  }
+
+  document.getElementById('cardModal').classList.add('on');
+}
+
+function closeCardModal() {
+  document.getElementById('cardModal').classList.remove('on');
+}
+
+function downloadCard() {
+  var canvas = document.getElementById('attendingCard');
+  var link = document.createElement('a');
+  link.download = 'tagtag-attending.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+  toast('Image saved! Share it to your WhatsApp status 🎉');
+}
+
+function shareCardToWhatsApp() {
+  var ev = cardEventData;
+  if (!ev) return;
+  var msg = 'I\'ll be attending *' + ev.name + '*';
+  if (ev.event_date) {
+    try {
+      var M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var d = new Date(ev.event_date + 'T00:00:00');
+      msg += ' — ' + d.getDate() + ' ' + M[d.getMonth()];
+    } catch(e) {}
+  }
+  msg += ' at ' + (ev.location || '') + ', ' + (ev.state || '') + '.';
+  if (ev.speaker) msg += '\n🎙 ' + ev.speaker + ' is ministering.';
+  msg += '\n\nSave the date 🙌 Anyone else going? Find others from your area 👉 tag-tag.pages.dev';
+
+  // Try Web Share API first (lets them share the actual image)
+  var canvas = document.getElementById('attendingCard');
+  canvas.toBlob(function(blob) {
+    if (navigator.share && blob) {
+      var file = new File([blob], 'tagtag-attending.png', { type: 'image/png' });
+      navigator.share({
+        files: [file],
+        text: msg
+      }).catch(function() {
+        // Fallback to WhatsApp link
+        window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+      });
+    } else {
+      window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+    }
+  }, 'image/png');
 }
 </script>
 </html>

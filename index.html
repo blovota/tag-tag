@@ -1033,7 +1033,7 @@ function renderOrgDash(){
 }
 function doBroadcast(evId,evName){
   sbGet('tagtag_attendees','event_id=eq.'+evId+'&select=nickname,whatsapp,area').then(function(att){
-    var msg='Hi! Just a reminder: *'+evName+'* is coming up. Check TagTag to see who else is going from your area and link up before the event 👉 tagtag.pages.dev';
+    var msg='Hi! Just a reminder: *'+evName+'* is coming up. Check TagTag to see who else is going from your area and link up before the event 👉 tag-tag.pages.dev';
     window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
     toast('WhatsApp opened with message template. '+att.length+' people to notify.');
   }).catch(function(){toast('Error. Try again.');});

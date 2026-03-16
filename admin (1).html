@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>TagTag Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --black:#0f0f0f;--off:#f7f5f2;--white:#fff;
+  --g100:#edeae5;--g200:#ddd9d2;--g400:#9e9a93;--g600:#5a5650;
+  --coral:#e8533a;--coral-light:rgba(232,83,58,.1);--coral-dark:#c9412a;
+  --teal:#0d7c6e;--teal-light:rgba(13,124,110,.1);
+  --gold:#d97706;--gold-light:rgba(217,119,6,.1);
+  --green:#16a34a;--green-light:rgba(22,163,74,.1);
+  --r:12px;--rs:8px;--sh:0 2px 12px rgba(0,0,0,.07)
+}
+body{background:var(--off);font-family:'DM Sans',sans-serif;font-size:15px;color:var(--black);min-height:100vh}
+.lock-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--black)}
+.lock-box{background:#fff;border-radius:16px;padding:38px 32px;width:100%;max-width:360px;text-align:center;margin:20px}
+.lock-logo{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;margin-bottom:4px}
+.lock-logo span{color:var(--coral)}
+.lock-sub{font-size:.82rem;color:var(--g400);margin-bottom:28px;line-height:1.5}
+.pw-wrap{position:relative;margin-bottom:10px}
+.lock-inp{width:100%;padding:12px 40px 12px 14px;border:1.5px solid var(--g200);border-radius:var(--rs);font-size:.9rem;font-family:'DM Sans',sans-serif;outline:none;color:var(--black);transition:border-color .2s}
+.lock-inp:focus{border-color:var(--black)}
+.pw-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1rem;color:var(--g400)}
+.lock-btn{width:100%;padding:13px;background:var(--black);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:8px}
+.lock-err{font-size:.78rem;color:var(--coral);font-weight:700;margin-top:6px;display:none}
+.lock-back{font-size:.78rem;color:var(--g400);text-decoration:none;display:inline-block;margin-top:14px}
+.app{display:none;min-height:100vh}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:230px;background:var(--black);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:50;overflow-y:auto}
+.sb-logo{padding:22px 20px 18px;border-bottom:1px solid rgba(255,255,255,.07)}
+.sb-logo-text{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;color:#fff;letter-spacing:-.02em}
+.sb-logo-text span{color:var(--coral)}
+.sb-logo-sub{font-size:.6rem;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-top:2px}
+.nav-sec{padding:12px 0 6px;border-bottom:1px solid rgba(255,255,255,.05)}
+.nav-lbl{font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.18);padding:0 20px;margin-bottom:4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;color:rgba(255,255,255,.4);font-size:.82rem;font-weight:600;cursor:pointer;transition:all .15s;border-left:2px solid transparent;user-select:none}
+.nav-item:hover{color:rgba(255,255,255,.8);background:rgba(255,255,255,.04)}
+.nav-item.on{color:#fff;border-left-color:var(--coral);background:rgba(232,83,58,.1)}
+.nav-ic{font-size:.95rem;width:22px;text-align:center;flex-shrink:0;line-height:1}
+.nav-badge{margin-left:auto;background:var(--coral);color:#fff;font-size:.58rem;font-weight:700;padding:2px 7px;border-radius:10px;min-width:18px;text-align:center;display:none}
+.sb-bottom{margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,.07)}
+.sb-user-name{font-size:.8rem;font-weight:700;color:rgba(255,255,255,.7);margin-bottom:2px}
+.sb-user-role{font-size:.7rem;color:rgba(255,255,255,.3);margin-bottom:8px}
+.sb-links{display:flex;gap:12px}
+.sb-link{font-size:.74rem;color:rgba(255,255,255,.3);text-decoration:none;cursor:pointer}
+.sb-link:hover{color:#fff}
+.sb-link.danger{color:var(--coral)}
+.main{margin-left:230px;flex:1}
+.topbar{background:#fff;padding:0 28px;height:58px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--g100);position:sticky;top:0;z-index:40;box-shadow:var(--sh);gap:12px}
+.tb-title{font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:800;letter-spacing:-.02em}
+.tb-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.lvl-badge{font-size:.65rem;font-weight:700;padding:3px 11px;border-radius:20px;letter-spacing:.06em;text-transform:uppercase;color:#fff}
+.content{padding:24px 28px;max-width:1100px;width:100%}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stat-card{background:#fff;border-radius:var(--r);padding:18px 20px;box-shadow:var(--sh)}
+.stat-n{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;line-height:1;margin-bottom:3px}
+.stat-l{font-size:.68rem;color:var(--g400);font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.stat-sub{font-size:.72rem;color:var(--g600);margin-top:5px;line-height:1.4}
+.stat-card.c-coral .stat-n{color:var(--coral)}
+.stat-card.c-teal .stat-n{color:var(--teal)}
+.stat-card.c-gold .stat-n{color:var(--gold)}
+.stat-card.c-green .stat-n{color:var(--green)}
+.sec{background:#fff;border-radius:var(--r);margin-bottom:20px;box-shadow:var(--sh);overflow:hidden;display:none}
+.sec.on{display:block}
+.sec-hdr{padding:16px 22px;border-bottom:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.sec-title{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:800;letter-spacing:-.01em}
+.sec-body{padding:20px 22px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.tbl-wrap{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--g400);padding:9px 12px;text-align:left;background:var(--off);border-bottom:1px solid var(--g100);white-space:nowrap}
+.tbl td{padding:11px 12px;border-bottom:1px solid var(--g100);font-size:.82rem;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(0,0,0,.012)}
+.ev-name{font-weight:700;font-size:.87rem;line-height:1.3;margin-bottom:2px}
+.ev-meta{font-size:.7rem;color:var(--g400);margin-top:1px}
+.ev-img{width:40px;height:40px;border-radius:6px;object-fit:cover;background:var(--g100);float:left;margin-right:10px;margin-bottom:4px}
+.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:.6rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+.b-live{background:var(--green-light);color:var(--green)}
+.b-feat{background:var(--coral-light);color:var(--coral-dark)}
+.b-verified{background:var(--teal-light);color:var(--teal)}
+.b-unrev{background:#fef3c7;color:#92400e}
+.b-pending{background:var(--gold-light);color:var(--gold)}
+.b-accepted{background:var(--green-light);color:var(--green)}
+.b-declined{background:var(--g100);color:var(--g400)}
+.b-report{background:#fee2e2;color:#991b1b}
+.btn{padding:8px 16px;border:none;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;line-height:1.2}
+.btn-coral{background:var(--coral);color:#fff}
+.btn-teal{background:var(--teal);color:#fff}
+.btn-black{background:var(--black);color:#fff}
+.btn-gold{background:var(--gold);color:#fff}
+.btn-danger{background:#dc2626;color:#fff}
+.btn-outline{background:transparent;border:1.5px solid var(--g200);color:var(--g600)}
+.btn-sm{padding:6px 13px;font-size:.74rem}
+.btn-xs{padding:4px 10px;font-size:.68rem}
+.acts{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.fgroup{display:flex;flex-direction:column;gap:4px;margin-bottom:13px}
+.flabel{font-size:.63rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--g600)}
+.finput,.fselect,.ftextarea{background:var(--off);border:1.5px solid var(--g200);border-radius:var(--rs);padding:9px 12px;color:var(--black);font-size:.85rem;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;width:100%}
+.finput:focus,.fselect:focus,.ftextarea:focus{border-color:var(--black);background:#fff}
+.ftextarea{resize:vertical;min-height:70px;line-height:1.5}
+.frow{display:flex;gap:10px}.frow>.fgroup{flex:1}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.bar-lbl{font-size:.78rem;font-weight:600;width:130px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;background:var(--g100);border-radius:4px;height:10px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .5s ease}
+.bar-val{font-size:.75rem;font-weight:700;color:var(--g600);width:30px;text-align:right;flex-shrink:0}
+.img-up-box{border:2px dashed var(--g200);border-radius:var(--rs);cursor:pointer;transition:border-color .2s;background:var(--off);overflow:hidden;min-height:74px;display:flex;align-items:center;justify-content:center;position:relative}
+.img-up-box:hover{border-color:var(--coral)}
+.img-up-box.has-img{border-style:solid}
+.img-ph{display:flex;align-items:center;gap:8px;padding:16px;color:var(--g400);font-size:.82rem;font-weight:600}
+.img-prev{width:100%;max-height:150px;object-fit:cover;display:none}
+.img-chg-btn{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:6px;padding:3px 10px;font-size:.66rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;display:none}
+.tog-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--g100);margin-top:4px}
+.tog-lbl{font-size:.85rem;font-weight:600}
+.tog{position:relative;width:42px;height:22px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0;position:absolute}
+.tog-sl{position:absolute;inset:0;background:var(--g200);border-radius:12px;cursor:pointer;transition:.2s}
+.tog-sl:before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
+.tog input:checked+.tog-sl{background:var(--teal)}
+.tog input:checked+.tog-sl:before{transform:translateX(20px)}
+.search-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.search-inp{flex:1;min-width:180px;padding:9px 12px;border:1.5px solid var(--g200);border-radius:var(--rs);font-size:.84rem;font-family:'DM Sans',sans-serif;outline:none;background:#fff;transition:border-color .2s}
+.search-inp:focus{border-color:var(--black)}
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:20px}
+.modal-ov.on{display:flex}
+.modal{background:#fff;border-radius:var(--r);padding:28px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;position:relative}
+.modal-title{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:4px;padding-right:30px}
+.modal-sub{font-size:.8rem;color:var(--g600);margin-bottom:18px;line-height:1.55}
+.modal-x{position:absolute;top:18px;right:18px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--g400)}
+.story-card{background:var(--teal-light);border-left:3px solid var(--teal);border-radius:var(--rs);padding:13px 15px;margin-bottom:10px}
+.story-ev{font-size:.72rem;color:var(--teal);font-weight:700;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em}
+.story-text{font-size:.85rem;font-style:italic;line-height:1.6;color:var(--black)}
+.act-item{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--g100)}
+.act-item:last-child{border-bottom:none}
+.act-name{font-weight:700;font-size:.84rem}
+.act-detail{font-size:.74rem;color:var(--g600);margin-top:1px}
+.act-time{font-size:.72rem;color:var(--g400);white-space:nowrap;flex-shrink:0;margin-left:10px}
+.empty{text-align:center;padding:28px;color:var(--g400);font-size:.85rem;line-height:1.6}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--black);color:#fff;border-radius:var(--rs);padding:12px 20px;font-size:.82rem;font-weight:600;z-index:999;opacity:0;transition:all .25s;pointer-events:none;box-shadow:0 8px 28px rgba(0,0,0,.22);max-width:320px}
+.toast.on{opacity:1}
+@media(max-width:960px){
+  .sidebar{width:64px}
+  .sb-logo-text,.sb-logo-sub,.nav-lbl,.sb-user-name,.sb-user-role,.sb-links,.nav-item>span:not(.nav-ic):not(.nav-badge){display:none}
+  .nav-item{justify-content:center;padding:13px}
+  .main{margin-left:64px}
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .two-col{grid-template-columns:1fr}
+  .content{padding:16px}
+  .topbar{padding:0 16px}
+}
+@media(max-width:500px){.stat-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<div id="lockScreen" class="lock-wrap">
+  <div class="lock-box">
+    <div class="lock-logo">Tag<span>Tag</span></div>
+    <div class="lock-sub">Admin Dashboard — Staff access only</div>
+    <div class="pw-wrap">
+      <input class="lock-inp" type="password" id="pwIn" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()"/>
+      <button class="pw-eye" onclick="togglePw()">👁</button>
+    </div>
+    <button class="lock-btn" onclick="doLogin()">Access Dashboard →</button>
+    <div class="lock-err" id="lockErr">Incorrect password. Try again.</div>
+    <a href="index.html" class="lock-back">← Back to app</a>
+  </div>
+</div>
+
+<div id="app" class="app">
+<div class="layout">
+<div class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-text">Tag<span>Tag</span></div>
+    <div class="sb-logo-sub">Admin Panel</div>
+  </div>
+  <div class="nav-sec">
+    <div class="nav-lbl">Overview</div>
+    <div class="nav-item on" id="nav-overview" onclick="go('overview')"><span class="nav-ic">📊</span><span>Analytics</span></div>
+  </div>
+  <div class="nav-sec">
+    <div class="nav-lbl">Content</div>
+    <div class="nav-item" id="nav-events" onclick="go('events')"><span class="nav-ic">📅</span><span>Events</span><span class="nav-badge" id="nb-unrev">0</span></div>
+    <div class="nav-item" id="nav-attendees" onclick="go('attendees')"><span class="nav-ic">🙋</span><span>Attendees</span></div>
+    <div class="nav-item" id="nav-connections" onclick="go('connections')"><span class="nav-ic">🔗</span><span>Connections</span></div>
+  </div>
+  <div class="nav-sec">
+    <div class="nav-lbl">Community</div>
+    <div class="nav-item" id="nav-organisers" onclick="go('organisers')"><span class="nav-ic">🏛</span><span>Organisers</span></div>
+    <div class="nav-item" id="nav-reports" onclick="go('reports')"><span class="nav-ic">🚩</span><span>Reports</span><span class="nav-badge" id="nb-reports">0</span></div>
+    <div class="nav-item" id="nav-feedback" onclick="go('feedback')"><span class="nav-ic">🌟</span><span>Feedback</span></div>
+  </div>
+  <div class="nav-sec" id="fullAdminNav">
+    <div class="nav-lbl">Admin Only</div>
+    <div class="nav-item" id="nav-addevent" onclick="go('addevent')"><span class="nav-ic">➕</span><span>Add Event</span></div>
+  </div>
+  <div class="sb-bottom">
+    <div class="sb-user-name" id="sbName">Admin</div>
+    <div class="sb-user-role" id="sbRole">Full Admin</div>
+    <div class="sb-links">
+      <a href="index.html" class="sb-link">← App</a>
+      <span class="sb-link danger" onclick="doLogout()">Logout</span>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="tb-title" id="tbTitle">Analytics</div>
+    <div class="tb-right">
+      <button class="btn btn-outline btn-sm" onclick="loadAll()">↻ Refresh</button>
+      <span class="lvl-badge" id="lvlBadge" style="background:var(--teal)">Full Admin</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="sec on" id="sec-overview">
+      <div class="stat-grid">
+        <div class="stat-card c-coral"><div class="stat-n" id="st-events">—</div><div class="stat-l">Live Events</div><div class="stat-sub" id="st-events-sub"></div></div>
+        <div class="stat-card c-teal"><div class="stat-n" id="st-going">—</div><div class="stat-l">People Going</div><div class="stat-sub" id="st-going-sub"></div></div>
+        <div class="stat-card c-gold"><div class="stat-n" id="st-conns">—</div><div class="stat-l">Connections Made</div><div class="stat-sub" id="st-conns-sub"></div></div>
+        <div class="stat-card c-green"><div class="stat-n" id="st-users">—</div><div class="stat-l">Unique Users</div><div class="stat-sub" id="st-users-sub"></div></div>
+      </div>
+      <div class="two-col">
+        <div class="sec on" style="margin:0"><div class="sec-hdr"><div class="sec-title">Top States</div></div><div class="sec-body" id="stateChart"><div class="empty">Loading...</div></div></div>
+        <div class="sec on" style="margin:0"><div class="sec-hdr"><div class="sec-title">Event Types</div></div><div class="sec-body" id="typeChart"><div class="empty">Loading...</div></div></div>
+      </div>
+      <div class="sec on" style="margin-bottom:20px"><div class="sec-hdr"><div class="sec-title">Top Events by Attendance</div></div><div class="sec-body" id="topEvChart"><div class="empty">Loading...</div></div></div>
+      <div class="sec on" style="margin-bottom:0"><div class="sec-hdr"><div class="sec-title">Recent Activity</div></div><div class="sec-body" id="recentAct"><div class="empty">Loading...</div></div></div>
+    </div>
+
+    <div class="sec" id="sec-events">
+      <div class="sec-hdr">
+        <div class="sec-title">All Events</div>
+        <div class="acts">
+          <button class="btn btn-outline btn-sm" onclick="setEvF('all')">All</button>
+          <button class="btn btn-outline btn-sm" onclick="setEvF('unrev')">⚠️ Unreviewed</button>
+          <button class="btn btn-outline btn-sm" onclick="setEvF('featured')">⭐ Featured</button>
+        </div>
+      </div>
+      <div class="sec-body">
+        <div class="search-row">
+          <input class="search-inp" id="evSearch" placeholder="Search events..." oninput="renderEvTable()"/>
+          <select class="finput" style="width:auto;max-width:140px" id="evStateF" onchange="renderEvTable()"><option value="">All states</option></select>
+        </div>
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Event</th><th>Type</th><th>Date</th><th>Going</th><th>Status</th><th>Actions</th></tr></thead><tbody id="evTbody"><tr><td colspan="6" class="empty">Loading...</td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <div class="sec" id="sec-attendees">
+      <div class="sec-hdr"><div class="sec-title">All Attendees</div><div style="font-size:.78rem;color:var(--g400)" id="attCountLbl"></div></div>
+      <div class="sec-body">
+        <div class="search-row"><input class="search-inp" id="attSearch" placeholder="Search by name, area or WhatsApp..." oninput="renderAttTable()"/></div>
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Nickname</th><th>Area</th><th>State</th><th>Event</th><th>Ride Share</th><th>Joined</th><th>Actions</th></tr></thead><tbody id="attTbody"><tr><td colspan="7" class="empty">Loading...</td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <div class="sec" id="sec-connections">
+      <div class="sec-hdr"><div class="sec-title">Connections</div><div id="connRateLbl" style="font-size:.78rem;color:var(--g400)"></div></div>
+      <div class="sec-body">
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>From</th><th>To</th><th>Event</th><th>Message</th><th>Status</th><th>Date</th></tr></thead><tbody id="connTbody"><tr><td colspan="6" class="empty">Loading...</td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <div class="sec" id="sec-organisers">
+      <div class="sec-hdr"><div class="sec-title">Verified Organisers</div><button class="btn btn-teal btn-sm" onclick="openAddOrg()">+ Add Organiser</button></div>
+      <div class="sec-body">
+        <div style="background:var(--teal-light);border-left:3px solid var(--teal);border-radius:var(--rs);padding:12px 14px;margin-bottom:16px;font-size:.82rem;color:var(--teal);line-height:1.6"><strong>How this works:</strong> Add a person's WhatsApp number here. They then login to the organiser dashboard on the main TagTag app by entering that same number. Their WhatsApp number IS their access key — no separate password needed.</div>
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Name</th><th>Organisation</th><th>WhatsApp</th><th>Status</th><th>Added</th><th>Actions</th></tr></thead><tbody id="orgTbody"><tr><td colspan="6" class="empty">Loading...</td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <div class="sec" id="sec-reports">
+      <div class="sec-hdr"><div class="sec-title">Reports Queue</div><div id="repCountLbl" style="font-size:.78rem;color:var(--g400)"></div></div>
+      <div class="sec-body">
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Reported Person</th><th>Reason</th><th>Reporter WA</th><th>Event</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody id="repTbody"><tr><td colspan="7" class="empty">Loading...</td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <div class="sec" id="sec-feedback">
+      <div class="sec-hdr"><div class="sec-title">Post-Event Feedback 🌟</div><div id="fbCountLbl" style="font-size:.78rem;color:var(--g400)"></div></div>
+      <div class="sec-body">
+        <div id="storiesWrap" style="margin-bottom:20px"></div>
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Event</th><th>Connected?</th><th>Story</th><th>Date</th><th>Actions</th></tr></thead><tbody id="fbTbody"><tr><td colspan="5" class="empty">Loading...</td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <div class="sec" id="sec-addevent">
+      <div class="sec-hdr"><div class="sec-title">Add Event Directly</div></div>
+      <div class="sec-body" style="max-width:560px">
+        <div class="fgroup">
+          <label class="flabel">Event Image or Speaker Photo</label>
+          <div class="img-up-box" id="aeImgBox" onclick="document.getElementById('aeImgIn').click()">
+            <div class="img-ph" id="aeImgPh">📸 &nbsp;Click to upload a photo</div>
+            <img class="img-prev" id="aeImgPrev" alt=""/>
+            <button class="img-chg-btn" id="aeImgChg" onclick="event.stopPropagation();document.getElementById('aeImgIn').click()">Change</button>
+          </div>
+          <input type="file" id="aeImgIn" accept="image/*" style="display:none" onchange="handleAeImg(this)"/>
+        </div>
+        <div class="fgroup"><label class="flabel">Event Name *</label><input class="finput" id="ae-name" placeholder="e.g. Fire and Grace Conference 2025"/></div>
+        <div class="fgroup"><label class="flabel">Speaker or Minister</label><input class="finput" id="ae-speaker" placeholder="e.g. Apostle Joshua Selman"/></div>
+        <div class="frow">
+          <div class="fgroup"><label class="flabel">Type</label>
+            <select class="fselect" id="ae-type">
+              <option value="Church">Church Programme</option><option value="Conference">Conference</option><option value="Crusade">Crusade</option><option value="Concert">Concert</option><option value="Prayer">Prayer Meeting</option><option value="Youth">Youth Programme</option><option value="Community">Community</option><option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="fgroup"><label class="flabel">State *</label>
+            <select class="fselect" id="ae-state">
+              <option value="">Select state</option>
+              <option>Abia</option><option>Adamawa</option><option>Akwa Ibom</option><option>Anambra</option><option>Bauchi</option><option>Bayelsa</option><option>Benue</option><option>Borno</option><option>Cross River</option><option>Delta</option><option>Ebonyi</option><option>Edo</option><option>Ekiti</option><option>Enugu</option><option>FCT Abuja</option><option>Gombe</option><option>Imo</option><option>Jigawa</option><option>Kaduna</option><option>Kano</option><option>Katsina</option><option>Kebbi</option><option>Kogi</option><option>Kwara</option><option>Lagos</option><option>Nasarawa</option><option>Niger</option><option>Ogun</option><option>Ondo</option><option>Osun</option><option>Oyo</option><option>Plateau</option><option>Rivers</option><option>Sokoto</option><option>Taraba</option><option>Yobe</option><option>Zamfara</option>
+            </select>
+          </div>
+        </div>
+        <div class="frow">
+          <div class="fgroup"><label class="flabel">Date</label><input class="finput" type="date" id="ae-date"/></div>
+          <div class="fgroup"><label class="flabel">Time</label><input class="finput" id="ae-time" placeholder="e.g. 10AM"/></div>
+        </div>
+        <div class="fgroup"><label class="flabel">Venue / Location *</label><input class="finput" id="ae-location" placeholder="e.g. Grace Arena, Ikeja"/></div>
+        <div class="fgroup"><label class="flabel">Description</label><textarea class="ftextarea" id="ae-desc"></textarea></div>
+        <div class="fgroup"><label class="flabel">WhatsApp (organiser contact)</label><input class="finput" id="ae-wa" placeholder="+2348012345678" type="tel"/></div>
+        <div class="tog-row"><div class="tog-lbl">⭐ Featured Event</div><label class="tog"><input type="checkbox" id="ae-featured"/><span class="tog-sl"></span></label></div>
+        <div class="tog-row"><div class="tog-lbl">🔵 Verified Organiser Event</div><label class="tog"><input type="checkbox" id="ae-verified"/><span class="tog-sl"></span></label></div>
+        <div style="display:flex;gap:8px;margin-top:18px">
+          <button class="btn btn-coral" id="aeBtn" onclick="adminAddEvent()">🚀 Publish Event</button>
+          <button class="btn btn-outline" onclick="clearAeForm()">Clear</button>
+        </div>
+        <div id="ae-msg" style="display:none;font-size:.78rem;margin-top:10px;font-weight:700;color:var(--teal)"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+</div>
+
+<div class="modal-ov" id="addOrgModal">
+  <div class="modal">
+    <button class="modal-x" onclick="closeAddOrg()">✕</button>
+    <div class="modal-title">Add Verified Organiser</div>
+    <div class="modal-sub">Once added, this person can login to their organiser dashboard on the TagTag app by entering this WhatsApp number. No separate password is needed — their number is their key.</div>
+    <div class="fgroup"><label class="flabel">Full Name *</label><input class="finput" id="org-name" placeholder="e.g. Pastor Emmanuel Adeyemi"/></div>
+    <div class="fgroup"><label class="flabel">Organisation</label><input class="finput" id="org-org" placeholder="e.g. RCCG Victory Chapel, Lagos"/></div>
+    <div class="fgroup"><label class="flabel">WhatsApp Number *</label><input class="finput" id="org-wa" placeholder="+2348012345678" type="tel"/></div>
+    <button class="btn btn-teal" onclick="saveOrg()">Save Organiser</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var SB_URL='https://hgzbbkhonbdyqmufvugy.supabase.co';
+var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnemJia2hvbmJkeXFtdWZ2dWd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMjMwODgsImV4cCI6MjA4ODg5OTA4OH0.qdF70zzthYG61QLLhBRzcuqfVeTfuyv6-tBX30iqMLo';
+var ADMIN_PW='Amen1995OoghalE!';
+var STAFF_PW='Staff@AiT2025';
+var adminLevel=0;
+var allEvents=[],allAttendees=[],allConns=[],allReports=[],allFeedback=[],allOrgs=[];
+var evFilter='all',aeImgFile=null;
+
+function sbFetch(path,opts){
+  var o=opts||{},h=o.headers||{};
+  h['apikey']=SB_KEY;h['Authorization']='Bearer '+SB_KEY;
+  h['Content-Type']='application/json';h['Prefer']=o.prefer||'return=representation';
+  o.headers=h;
+  return fetch(SB_URL+'/rest/v1/'+path,o).then(function(r){
+    if(!r.ok)return r.text().then(function(t){throw new Error(t);});
+    var ct=r.headers.get('content-type')||'';
+    if(ct.includes('json')&&r.status!==204)return r.json();
+    return[];
+  });
+}
+function sbGet(t,q){return sbFetch(t+'?'+(q||''),{method:'GET'});}
+function sbPost(t,d){return sbFetch(t,{method:'POST',body:JSON.stringify(d)});}
+function sbPatch(t,q,d){return sbFetch(t+'?'+q,{method:'PATCH',body:JSON.stringify(d),prefer:'return=minimal'});}
+function sbDel(t,q){return sbFetch(t+'?'+q,{method:'DELETE',prefer:'return=minimal'});}
+
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('on');},3000);}
+function fmtDate(ds){if(!ds)return'—';try{return new Date(ds+'T00:00:00').toLocaleDateString('en-NG',{day:'numeric',month:'short',year:'numeric'});}catch(e){return ds;}}
+function fmtTs(ts){if(!ts)return'—';try{return new Date(ts).toLocaleDateString('en-NG',{day:'numeric',month:'short',year:'numeric'});}catch(e){return ts;}}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function togglePw(){var i=document.getElementById('pwIn');i.type=i.type==='password'?'text':'password';}
+function doLogin(){
+  var pw=document.getElementById('pwIn').value;
+  var err=document.getElementById('lockErr');
+  if(pw===ADMIN_PW){adminLevel=2;localStorage.setItem('ttAdminSession','full');}
+  else if(pw===STAFF_PW){adminLevel=1;localStorage.setItem('ttAdminSession','staff');}
+  else{err.style.display='block';return;}
+  err.style.display='none';showDash();
+}
+function doLogout(){
+  adminLevel=0;localStorage.removeItem('ttAdminSession');
+  document.getElementById('app').style.display='none';
+  document.getElementById('lockScreen').style.display='flex';
+  document.getElementById('pwIn').value='';
+}
+function showDash(){
+  document.getElementById('lockScreen').style.display='none';
+  document.getElementById('app').style.display='block';
+  var badge=document.getElementById('lvlBadge');
+  var fullNav=document.getElementById('fullAdminNav');
+  if(adminLevel>=2){
+    badge.style.background='var(--teal)';badge.textContent='Full Admin';
+    document.getElementById('sbName').textContent='Full Admin';
+    document.getElementById('sbRole').textContent='All access';
+    if(fullNav)fullNav.style.display='block';
+  }else{
+    badge.style.background='var(--gold)';badge.textContent='Staff';
+    document.getElementById('sbName').textContent='Staff';
+    document.getElementById('sbRole').textContent='Limited access';
+    if(fullNav)fullNav.style.display='none';
+  }
+  loadAll();
+}
+window.addEventListener('load',function(){
+  var s=localStorage.getItem('ttAdminSession');
+  if(s==='full'){adminLevel=2;showDash();}
+  else if(s==='staff'){adminLevel=1;showDash();}
+});
+
+var SECTIONS=['overview','events','attendees','connections','organisers','reports','feedback','addevent'];
+var TITLES={overview:'Analytics',events:'Events',attendees:'Attendees',connections:'Connections',organisers:'Organisers',reports:'Reports Queue',feedback:'Feedback & Stories',addevent:'Add Event'};
+function go(id){
+  SECTIONS.forEach(function(s){
+    var sec=document.getElementById('sec-'+s);
+    var nav=document.getElementById('nav-'+s);
+    if(sec)sec.classList.toggle('on',s===id);
+    if(nav)nav.classList.toggle('on',s===id);
+  });
+  var tb=document.getElementById('tbTitle');
+  if(tb)tb.textContent=TITLES[id]||id;
+  window.scrollTo(0,0);
+}
+
+function loadAll(){
+  toast('Loading data...');
+  Promise.all([
+    sbGet('tagtag_events','order=created_at.desc').then(function(d){allEvents=d||[];}),
+    sbGet('tagtag_attendees','order=created_at.desc').then(function(d){allAttendees=d||[];}),
+    sbGet('tagtag_connections','order=created_at.desc').then(function(d){allConns=d||[];}),
+    sbGet('tagtag_reports','order=created_at.desc').then(function(d){allReports=d||[];}),
+    sbGet('tagtag_feedback','order=created_at.desc').then(function(d){allFeedback=d||[];}),
+    sbGet('tagtag_organisers','order=created_at.desc').then(function(d){allOrgs=d||[];})
+  ]).then(function(){
+    renderOverview();renderEvTable();renderAttTable();renderConnTable();
+    renderOrgTable();renderRepTable();renderFbTable();updateBadges();
+    toast('Loaded ✓');
+  }).catch(function(e){toast('Error loading data');console.error(e);});
+}
+
+function updateBadges(){
+  var unrev=allEvents.filter(function(e){return!e.reviewed&&e.status==='live';}).length;
+  var pendRep=allReports.filter(function(r){return r.status==='pending';}).length;
+  var u=document.getElementById('nb-unrev');var r=document.getElementById('nb-reports');
+  if(u){u.textContent=unrev;u.style.display=unrev?'inline-flex':'none';}
+  if(r){r.textContent=pendRep;r.style.display=pendRep?'inline-flex':'none';}
+}
+
+function renderOverview(){
+  var liveEvs=allEvents.filter(function(e){return e.status==='live';});
+  var accepted=allConns.filter(function(c){return c.status==='accepted';}).length;
+  var rate=allConns.length?Math.round(accepted/allConns.length*100):0;
+  var waSet=new Set();allAttendees.forEach(function(a){if(a.whatsapp)waSet.add(a.whatsapp);});
+  var unique=waSet.size;
+  var waCounts={};allAttendees.forEach(function(a){if(a.whatsapp)waCounts[a.whatsapp]=(waCounts[a.whatsapp]||0)+1;});
+  var returning=Object.values(waCounts).filter(function(c){return c>1;}).length;
+  var weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-7);
+  var newEvs=allEvents.filter(function(e){return new Date(e.created_at)>weekAgo;}).length;
+  var newAtts=allAttendees.filter(function(a){return new Date(a.created_at)>weekAgo;}).length;
+  function set(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
+  set('st-events',liveEvs.length);set('st-events-sub','+'+newEvs+' this week');
+  set('st-going',allAttendees.length);set('st-going-sub','+'+newAtts+' this week');
+  set('st-conns',accepted);set('st-conns-sub',rate+'% acceptance rate');
+  set('st-users',unique);set('st-users-sub',returning+' returning users');
+  var stateCounts={};allAttendees.forEach(function(a){if(a.state)stateCounts[a.state]=(stateCounts[a.state]||0)+1;});
+  var topStates=Object.entries(stateCounts).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
+  var maxS=topStates.length?topStates[0][1]:1;
+  document.getElementById('stateChart').innerHTML=topStates.length?topStates.map(function(s){return'<div class="bar-row"><div class="bar-lbl">'+esc(s[0])+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(s[1]/maxS*100)+'%;background:var(--coral)"></div></div><div class="bar-val">'+s[1]+'</div></div>';}).join(''):'<div class="empty">No data yet</div>';
+  var typeCounts={};allEvents.forEach(function(e){if(e.type)typeCounts[e.type]=(typeCounts[e.type]||0)+1;});
+  var topTypes=Object.entries(typeCounts).sort(function(a,b){return b[1]-a[1];});
+  var maxT=topTypes.length?topTypes[0][1]:1;
+  document.getElementById('typeChart').innerHTML=topTypes.length?topTypes.map(function(t){return'<div class="bar-row"><div class="bar-lbl">'+esc(t[0])+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(t[1]/maxT*100)+'%;background:var(--teal)"></div></div><div class="bar-val">'+t[1]+'</div></div>';}).join(''):'<div class="empty">No data yet</div>';
+  var evAtts=allEvents.map(function(e){return{name:e.name,cnt:allAttendees.filter(function(a){return a.event_id===e.id;}).length};}).filter(function(x){return x.cnt>0;}).sort(function(a,b){return b.cnt-a.cnt;}).slice(0,6);
+  var maxE=evAtts.length?evAtts[0].cnt:1;
+  document.getElementById('topEvChart').innerHTML=evAtts.length?evAtts.map(function(e){return'<div class="bar-row"><div class="bar-lbl" style="width:200px">'+esc(e.name)+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(e.cnt/maxE*100)+'%;background:var(--gold)"></div></div><div class="bar-val">'+e.cnt+'</div></div>';}).join(''):'<div class="empty">No events with attendees yet</div>';
+  var recent=allAttendees.slice(0,12);
+  document.getElementById('recentAct').innerHTML=recent.length?recent.map(function(a){var ev=allEvents.find(function(e){return e.id===a.event_id;});return'<div class="act-item"><div><div class="act-name">'+esc(a.nickname)+'</div><div class="act-detail">📍 '+esc(a.area)+', '+esc(a.state)+' → '+(ev?esc(ev.name):'Unknown event')+'</div></div><div class="act-time">'+fmtTs(a.created_at)+'</div></div>';}).join(''):'<div class="empty">No activity yet</div>';
+}
+
+function setEvF(f){evFilter=f;renderEvTable();}
+function renderEvTable(){
+  var search=(document.getElementById('evSearch').value||'').toLowerCase();
+  var stF=(document.getElementById('evStateF').value||'');
+  var sfEl=document.getElementById('evStateF');
+  if(sfEl.options.length<=1){var states=[...new Set(allEvents.map(function(e){return e.state;}).filter(Boolean))].sort();states.forEach(function(s){var o=document.createElement('option');o.value=s;o.textContent=s;sfEl.appendChild(o);});}
+  var list=allEvents.filter(function(e){
+    if(evFilter==='unrev'&&(e.reviewed||e.status!=='live'))return false;
+    if(evFilter==='featured'&&!e.featured)return false;
+    if(stF&&e.state!==stF)return false;
+    if(search&&!(e.name||'').toLowerCase().includes(search)&&!(e.location||'').toLowerCase().includes(search))return false;
+    return true;
+  });
+  var tbody=document.getElementById('evTbody');
+  if(!list.length){tbody.innerHTML='<tr><td colspan="6" class="empty">No events match this filter</td></tr>';return;}
+  tbody.innerHTML=list.map(function(ev){
+    var cnt=allAttendees.filter(function(a){return a.event_id===ev.id;}).length;
+    var badges='';
+    if(ev.status==='live')badges+='<span class="badge b-live">Live</span> ';
+    if(!ev.reviewed&&ev.status==='live')badges+='<span class="badge b-unrev">⚠ Unreviewed</span> ';
+    if(ev.featured)badges+='<span class="badge b-feat">⭐ Featured</span> ';
+    if(ev.verified_org)badges+='<span class="badge b-verified">🔵 Verified</span>';
+    return'<tr>'
+      +'<td style="min-width:200px">'+(ev.image_url?'<img class="ev-img" src="'+esc(ev.image_url)+'" onerror="this.style.display=\'none\'"/>':'')
+      +'<div class="ev-name">'+esc(ev.name)+'</div>'+(ev.speaker?'<div class="ev-meta">🎙 '+esc(ev.speaker)+'</div>':'')
+      +'<div class="ev-meta">📍 '+esc(ev.location)+', '+esc(ev.state)+'</div>'
+      +'<div style="margin-top:4px">'+badges+'</div></td>'
+      +'<td style="font-size:.78rem;white-space:nowrap">'+esc(ev.type)+'</td>'
+      +'<td style="font-size:.77rem;white-space:nowrap">'+fmtDate(ev.event_date)+(ev.event_time?'<br><span style="color:var(--g400)">'+esc(ev.event_time)+'</span>':'')+'</td>'
+      +'<td><strong>'+cnt+'</strong></td>'
+      +'<td>'+(ev.status==='live'?'<span class="badge b-live">Live</span>':'<span class="badge b-pending">'+esc(ev.status)+'</span>')+'</td>'
+      +'<td><div class="acts">'
+      +(!ev.reviewed&&ev.status==='live'?'<button class="btn btn-teal btn-xs" onclick="markReviewed(\''+ev.id+'\')">✓ Review</button>':'')
+      +(!ev.featured?'<button class="btn btn-outline btn-xs" onclick="featureEv(\''+ev.id+'\')">⭐</button>':'<button class="btn btn-outline btn-xs" onclick="unfeatureEv(\''+ev.id+'\')">Unfeat</button>')
+      +(!ev.verified_org?'<button class="btn btn-outline btn-xs" onclick="verifyEv(\''+ev.id+'\')">🔵</button>':'')
+      +'<button class="btn btn-danger btn-xs" onclick="deleteEv(\''+ev.id+'\')">✕</button>'
+      +'</div></td></tr>';
+  }).join('');
+}
+function markReviewed(id){sbPatch('tagtag_events','id=eq.'+id,{reviewed:true}).then(function(){var e=allEvents.find(function(e){return e.id===id;});if(e)e.reviewed=true;renderEvTable();updateBadges();toast('Reviewed ✓');}).catch(function(){toast('Error');});}
+function featureEv(id){sbPatch('tagtag_events','id=eq.'+id,{featured:true}).then(function(){var e=allEvents.find(function(e){return e.id===id;});if(e)e.featured=true;renderEvTable();renderOverview();toast('⭐ Featured!');}).catch(function(){toast('Error');});}
+function unfeatureEv(id){sbPatch('tagtag_events','id=eq.'+id,{featured:false}).then(function(){var e=allEvents.find(function(e){return e.id===id;});if(e)e.featured=false;renderEvTable();toast('Removed from featured');}).catch(function(){toast('Error');});}
+function verifyEv(id){sbPatch('tagtag_events','id=eq.'+id,{verified_org:true}).then(function(){var e=allEvents.find(function(e){return e.id===id;});if(e)e.verified_org=true;renderEvTable();toast('🔵 Verified!');}).catch(function(){toast('Error');});}
+function deleteEv(id){if(!confirm('Remove this event? All attendees and connections will also be removed.'))return;sbDel('tagtag_events','id=eq.'+id).then(function(){allEvents=allEvents.filter(function(e){return e.id!==id;});allAttendees=allAttendees.filter(function(a){return a.event_id!==id;});renderEvTable();renderOverview();updateBadges();toast('Event removed');}).catch(function(){toast('Error');});}
+
+function renderAttTable(){
+  var search=(document.getElementById('attSearch').value||'').toLowerCase();
+  var list=allAttendees.filter(function(a){if(!search)return true;return(a.nickname||'').toLowerCase().includes(search)||(a.area||'').toLowerCase().includes(search)||(a.whatsapp||'').includes(search);});
+  document.getElementById('attCountLbl').textContent=list.length+' attendees';
+  var tbody=document.getElementById('attTbody');
+  if(!list.length){tbody.innerHTML='<tr><td colspan="7" class="empty">No attendees found</td></tr>';return;}
+  tbody.innerHTML=list.slice(0,200).map(function(a){var ev=allEvents.find(function(e){return e.id===a.event_id;});return'<tr><td><strong>'+esc(a.nickname)+'</strong></td><td>'+esc(a.area)+'</td><td>'+esc(a.state)+'</td><td style="font-size:.78rem;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(ev?esc(ev.name):'—')+'</td><td style="text-align:center">'+(a.ride_share?'🚗':'—')+'</td><td style="font-size:.75rem;white-space:nowrap">'+fmtTs(a.created_at)+'</td><td><button class="btn btn-danger btn-xs" onclick="deleteAtt(\''+a.id+'\')">Remove</button></td></tr>';}).join('');
+}
+function deleteAtt(id){if(!confirm('Remove this attendee?'))return;sbDel('tagtag_attendees','id=eq.'+id).then(function(){allAttendees=allAttendees.filter(function(a){return a.id!==id;});renderAttTable();renderOverview();toast('Removed');}).catch(function(){toast('Error');});}
+
+function renderConnTable(){
+  var accepted=allConns.filter(function(c){return c.status==='accepted';}).length;
+  var rate=allConns.length?Math.round(accepted/allConns.length*100):0;
+  document.getElementById('connRateLbl').textContent=accepted+' accepted · '+rate+'% rate · '+allConns.length+' total';
+  var tbody=document.getElementById('connTbody');
+  if(!allConns.length){tbody.innerHTML='<tr><td colspan="6" class="empty">No connections yet</td></tr>';return;}
+  tbody.innerHTML=allConns.slice(0,200).map(function(c){
+    var ev=allEvents.find(function(e){return e.id===c.event_id;});
+    var from=allAttendees.find(function(a){return a.id===c.requester_id;});
+    var to=allAttendees.find(function(a){return a.id===c.recipient_id;});
+    var bCls=c.status==='accepted'?'b-accepted':c.status==='declined'?'b-declined':'b-pending';
+    return'<tr><td><strong>'+esc(from?from.nickname:'—')+'</strong><div class="ev-meta">'+(from?esc(from.area)+', '+esc(from.state):'')+'</div></td><td><strong>'+esc(to?to.nickname:'—')+'</strong><div class="ev-meta">'+(to?esc(to.area)+', '+esc(to.state):'')+'</div></td><td style="font-size:.78rem;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(ev?esc(ev.name):'—')+'</td><td style="font-size:.78rem;font-style:italic;max-width:180px;color:var(--g600)">'+(c.message?'&ldquo;'+esc(c.message.substring(0,60))+(c.message.length>60?'...':'')+'&rdquo;':'—')+'</td><td><span class="badge '+bCls+'">'+c.status+'</span></td><td style="font-size:.75rem;white-space:nowrap">'+fmtTs(c.created_at)+'</td></tr>';
+  }).join('');
+}
+
+function renderOrgTable(){
+  var tbody=document.getElementById('orgTbody');
+  if(!allOrgs.length){tbody.innerHTML='<tr><td colspan="6" class="empty">No verified organisers yet. Add one using the button above.</td></tr>';return;}
+  tbody.innerHTML=allOrgs.map(function(o){return'<tr><td><strong>'+esc(o.name)+'</strong></td><td>'+esc(o.organisation)+'</td><td style="font-size:.8rem">'+esc(o.whatsapp)+'</td><td>'+(o.verified?'<span class="badge b-verified">✓ Verified</span>':'<span class="badge b-pending">Unverified</span>')+'</td><td style="font-size:.75rem">'+fmtTs(o.created_at)+'</td><td><div class="acts">'+(o.verified?'<button class="btn btn-outline btn-xs" onclick="revokeOrg(\''+o.id+'\')">Revoke</button>':'<button class="btn btn-teal btn-xs" onclick="verifyOrg(\''+o.id+'\')">Verify</button>')+'<button class="btn btn-danger btn-xs" onclick="deleteOrg(\''+o.id+'\')">Remove</button></div></td></tr>';}).join('');
+}
+function openAddOrg(){document.getElementById('addOrgModal').classList.add('on');}
+function closeAddOrg(){document.getElementById('addOrgModal').classList.remove('on');}
+function saveOrg(){
+  var name=document.getElementById('org-name').value.trim();
+  var org=document.getElementById('org-org').value.trim();
+  var wa=document.getElementById('org-wa').value.trim();
+  if(!name){toast('Please enter their name');return;}
+  if(!wa){toast('Please enter their WhatsApp number');return;}
+  sbPost('tagtag_organisers',{name:name,organisation:org,whatsapp:wa,verified:true}).then(function(d){if(d&&d[0])allOrgs.unshift(d[0]);closeAddOrg();document.getElementById('org-name').value='';document.getElementById('org-org').value='';document.getElementById('org-wa').value='';renderOrgTable();toast('Organiser added ✓ They can now login on the app');}).catch(function(){toast('Error — that WhatsApp number may already be registered');});
+}
+function verifyOrg(id){sbPatch('tagtag_organisers','id=eq.'+id,{verified:true}).then(function(){var o=allOrgs.find(function(x){return x.id===id;});if(o)o.verified=true;renderOrgTable();toast('Verified ✓');}).catch(function(){toast('Error');});}
+function revokeOrg(id){sbPatch('tagtag_organisers','id=eq.'+id,{verified:false}).then(function(){var o=allOrgs.find(function(x){return x.id===id;});if(o)o.verified=false;renderOrgTable();toast('Revoked');}).catch(function(){toast('Error');});}
+function deleteOrg(id){if(!confirm('Remove this organiser?'))return;sbDel('tagtag_organisers','id=eq.'+id).then(function(){allOrgs=allOrgs.filter(function(o){return o.id!==id;});renderOrgTable();toast('Removed');}).catch(function(){toast('Error');});}
+
+function renderRepTable(){
+  var pending=allReports.filter(function(r){return r.status==='pending';}).length;
+  document.getElementById('repCountLbl').textContent=pending+' pending · '+allReports.length+' total';
+  var tbody=document.getElementById('repTbody');
+  if(!allReports.length){tbody.innerHTML='<tr><td colspan="7" class="empty">No reports yet — that\'s good! 🙏</td></tr>';return;}
+  tbody.innerHTML=allReports.map(function(r){var att=allAttendees.find(function(a){return a.id===r.reported_attendee_id;});var ev=allEvents.find(function(e){return e.id===r.event_id;});return'<tr><td><strong>'+(att?esc(att.nickname):'User deleted')+'</strong><div class="ev-meta">'+(att?esc(att.area)+', '+esc(att.state):'')+'</div></td><td style="font-size:.8rem">'+esc(r.reason)+'</td><td style="font-size:.78rem">'+esc(r.reporter_wa)+'</td><td style="font-size:.78rem;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(ev?esc(ev.name):'—')+'</td><td><span class="badge '+(r.status==='pending'?'b-report':'b-accepted')+'">'+esc(r.status)+'</span></td><td style="font-size:.75rem;white-space:nowrap">'+fmtTs(r.created_at)+'</td><td><div class="acts">'+(r.status==='pending'&&att?'<button class="btn btn-danger btn-xs" onclick="removeReported(\''+r.id+'\',\''+att.id+'\')">Remove User</button>':'')+'<button class="btn btn-outline btn-xs" onclick="dismissRep(\''+r.id+'\')">Dismiss</button></div></td></tr>';}).join('');
+}
+function removeReported(repId,attId){if(!confirm('Remove this user from the platform?'))return;sbDel('tagtag_attendees','id=eq.'+attId).then(function(){return sbPatch('tagtag_reports','id=eq.'+repId,{status:'resolved'});}).then(function(){allAttendees=allAttendees.filter(function(a){return a.id!==attId;});var r=allReports.find(function(x){return x.id===repId;});if(r)r.status='resolved';renderRepTable();renderAttTable();updateBadges();toast('User removed from platform');}).catch(function(){toast('Error');});}
+function dismissRep(id){sbPatch('tagtag_reports','id=eq.'+id,{status:'dismissed'}).then(function(){var r=allReports.find(function(x){return x.id===id;});if(r)r.status='dismissed';renderRepTable();updateBadges();toast('Dismissed');}).catch(function(){toast('Error');});}
+
+function renderFbTable(){
+  var connected=allFeedback.filter(function(f){return f.connected;}).length;
+  document.getElementById('fbCountLbl').textContent=allFeedback.length+' responses · '+connected+' connected';
+  var stories=allFeedback.filter(function(f){return f.connected&&f.story&&f.story.trim().length>10;});
+  var storiesEl=document.getElementById('storiesWrap');
+  if(stories.length){storiesEl.innerHTML='<div style="font-family:\'Syne\',sans-serif;font-size:.93rem;font-weight:800;margin-bottom:12px">🌟 Connection Stories ('+stories.length+')</div><div style="font-size:.78rem;color:var(--g600);margin-bottom:12px;line-height:1.5">Real stories from people who connected through TagTag. Use these for social media and testimonials.</div>'+stories.map(function(f){var ev=allEvents.find(function(e){return e.id===f.event_id;});return'<div class="story-card"><div class="story-ev">'+(ev?esc(ev.name):'Event')+'</div><div class="story-text">&ldquo;'+esc(f.story)+'&rdquo;</div></div>';}).join('');}else{storiesEl.innerHTML='';}
+  var tbody=document.getElementById('fbTbody');
+  if(!allFeedback.length){tbody.innerHTML='<tr><td colspan="5" class="empty">No feedback yet — this appears after events have passed</td></tr>';return;}
+  tbody.innerHTML=allFeedback.map(function(f){var ev=allEvents.find(function(e){return e.id===f.event_id;});return'<tr><td style="font-size:.8rem;max-width:160px">'+(ev?esc(ev.name):'—')+'</td><td>'+(f.connected?'<span class="badge b-accepted">✅ Yes</span>':'<span class="badge" style="background:var(--g100);color:var(--g600)">No</span>')+'</td><td style="font-size:.8rem;font-style:italic;max-width:220px;color:var(--g600)">'+(f.story?'&ldquo;'+esc(f.story.substring(0,80))+(f.story.length>80?'...':'')+'&rdquo;':'—')+'</td><td style="font-size:.75rem;white-space:nowrap">'+fmtTs(f.created_at)+'</td><td><button class="btn btn-danger btn-xs" onclick="deleteFb(\''+f.id+'\')">Remove</button></td></tr>';}).join('');
+}
+function deleteFb(id){sbDel('tagtag_feedback','id=eq.'+id).then(function(){allFeedback=allFeedback.filter(function(f){return f.id!==id;});renderFbTable();toast('Removed');}).catch(function(){toast('Error');});}
+
+function handleAeImg(input){var file=input.files[0];if(!file)return;aeImgFile=file;var r=new FileReader();r.onload=function(e){var prev=document.getElementById('aeImgPrev');var ph=document.getElementById('aeImgPh');var chg=document.getElementById('aeImgChg');var box=document.getElementById('aeImgBox');if(prev){prev.src=e.target.result;prev.style.display='block';}if(ph)ph.style.display='none';if(chg)chg.style.display='block';if(box)box.classList.add('has-img');};r.readAsDataURL(file);}
+async function uploadImage(file){var ext=(file.name.split('.').pop()||'jpg').toLowerCase();var fn='ev-'+Date.now()+'-'+Math.random().toString(36).substr(2,7)+'.'+ext;var res=await fetch(SB_URL+'/storage/v1/object/tagtag-images/'+fn,{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':file.type||'image/jpeg','x-upsert':'true'},body:file});if(!res.ok)throw new Error('Upload failed');return SB_URL+'/storage/v1/object/public/tagtag-images/'+fn;}
+async function adminAddEvent(){
+  var name=document.getElementById('ae-name').value.trim();
+  var state=document.getElementById('ae-state').value;
+  var loc=document.getElementById('ae-location').value.trim();
+  var msg=document.getElementById('ae-msg');
+  if(!name){toast('Please enter the event name');return;}
+  if(!state){toast('Please select a state');return;}
+  if(!loc){toast('Please enter the venue / location');return;}
+  var btn=document.getElementById('aeBtn');btn.textContent='Publishing...';btn.disabled=true;
+  var imgUrl='';
+  if(aeImgFile){try{imgUrl=await uploadImage(aeImgFile);}catch(e){toast('Image upload failed — posting without photo');}}
+  sbPost('tagtag_events',{name:name,type:document.getElementById('ae-type').value,state:state,event_date:document.getElementById('ae-date').value||null,event_time:document.getElementById('ae-time').value.trim(),location:loc,description:document.getElementById('ae-desc').value.trim(),whatsapp:document.getElementById('ae-wa').value.trim(),speaker:document.getElementById('ae-speaker').value.trim(),image_url:imgUrl,featured:document.getElementById('ae-featured').checked,verified_org:document.getElementById('ae-verified').checked,status:'live',reviewed:true}).then(function(d){if(d&&d[0])allEvents.unshift(d[0]);btn.textContent='🚀 Publish Event';btn.disabled=false;clearAeForm();msg.textContent='✅ Event is live!';msg.style.display='block';setTimeout(function(){msg.style.display='none';},4000);renderEvTable();renderOverview();toast('Event published!');}).catch(function(){btn.textContent='🚀 Publish Event';btn.disabled=false;toast('Error publishing event');});
+}
+function clearAeForm(){['ae-name','ae-state','ae-date','ae-time','ae-location','ae-desc','ae-wa','ae-speaker'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});document.getElementById('ae-featured').checked=false;document.getElementById('ae-verified').checked=false;aeImgFile=null;var prev=document.getElementById('aeImgPrev');var ph=document.getElementById('aeImgPh');var chg=document.getElementById('aeImgChg');var box=document.getElementById('aeImgBox');if(prev){prev.src='';prev.style.display='none';}if(ph)ph.style.display='flex';if(chg)chg.style.display='none';if(box)box.classList.remove('has-img');}
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "TagTagMe",
+  "short_name": "TagTagMe",
+  "description": "Find your people at every event. Going somewhere alone? Connect with others going from your area.",
+  "start_url": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#0f0f0f",
+  "theme_color": "#0f0f0f",
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "en",
+  "icons": [
+    {"src":"icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
+    {"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+  ],
+  "screenshots": [],
+  "categories": ["social", "lifestyle", "entertainment"]
+}

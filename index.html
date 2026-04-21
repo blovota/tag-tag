@@ -1110,7 +1110,8 @@ async function submitEvent(){
     btn.textContent='🚀 Post Event Live';btn.disabled=false;
     ['se-name','se-state','se-date','se-time','se-location','se-desc','se-wa','se-speaker'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
     closeSubmitModal();toast('Event is live! 🎉');
-  }).catch(function(){btn.textContent='🚀 Post Event Live';btn.disabled=false;toast('Error posting. Please try again.');});
+  }).catch(function(e){btn.textContent='🚀 Post Event Live';btn.disabled=false;toast('ERR: '+(e&&e.message?e.message.substring(0,120):'unknown'));
+})
 }
 
 function openPodModal(evId){
